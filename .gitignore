@@ -130,3 +130,10 @@ dmypy.json
 
 # .idea
 .idea
+
+# redoc frontend api documentation (for development purpose)
+/docs/ReDoc - new.html
+/docs/ReDoc - new_files/
+
+# development remiders and shortlists
+/reminder.txt
