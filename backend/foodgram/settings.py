@@ -151,13 +151,13 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # todo code cleanup
-# AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'users.User'
 
-# INCORRECT_USERNAMES = [
-#     r'me$',
-#     r'.*[^\w.@+-_].*',
-# ]
-#
+INCORRECT_USERNAMES = [
+    r'me$',
+    r'.*[^\w.@+-_].*',
+]
+
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 #
 # EMAIL_HOST = 'localhost'
