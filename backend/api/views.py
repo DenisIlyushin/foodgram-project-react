@@ -1,3 +1,9 @@
-from django.shortcuts import render
+from django.contrib.auth import get_user_model
+from djoser.views import UserViewSet as DjoserUserViewSet
+from rest_framework.pagination import LimitOffsetPagination
 
-# Create your views here.
+User = get_user_model()
+
+
+class UserViewSet(DjoserUserViewSet):
+    pagination_class = LimitOffsetPagination

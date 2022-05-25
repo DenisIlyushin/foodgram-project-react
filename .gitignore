@@ -137,3 +137,6 @@ dmypy.json
 
 # development remiders and shortlists
 /reminder.txt
+
+# dev media folder
+/backend/media/
