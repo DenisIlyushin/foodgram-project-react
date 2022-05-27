@@ -54,30 +54,8 @@ class UserViewSet(DjoserUserViewSet):
 
         except Exception as e:
             return Response(
-                {'errors': (
-                    f'Ошибка отписки. Подписки не существует или вы уже '
-                    f'отписались.',
-                )},
+                {'errors': f'Ошибка отписки. {e}'},
                 status=status.HTTP_400_BAD_REQUEST)
-
-        # user = request.user
-        # author = get_object_or_404(User, id=id)
-        # if user == author:
-        #     return Response(
-        #         {'errors': (
-        #             'Ошибка отписки. Нельзя отписаться от самого себя.'
-        #         )},
-        #         status=status.HTTP_400_BAD_REQUEST)
-        # follow = Follow.objects.filter(user=user, author=author)
-        # if follow.exists():
-        #     follow.delete()
-        #     return Response(status=status.HTTP_204_NO_CONTENT)
-        # return Response(
-        #     {'errors': (
-        #             'Ошибка отписки. Подписки не существует или вы уже '
-        #             'отписались.'
-        #         )},
-        #     status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
