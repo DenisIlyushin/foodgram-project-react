@@ -57,3 +57,35 @@ class User(AbstractUser):
     @property
     def is_user(self):
         return self.is_user
+
+
+class Follow(models.Model):
+    user = models.ForeignKey(
+        User,
+        verbose_name='Подписчик',
+        on_delete=models.CASCADE,
+        related_name='follower'
+    )
+    author = models.ForeignKey(
+        User,
+        verbose_name='Автор',
+        on_delete=models.CASCADE,
+        related_name='following'
+    )
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(
+                name="follow_unique_relationships",
+                fields=["user", "author"],
+            ),
+            models.CheckConstraint(
+                name="follow_prevent_self_follow",
+                check=~models.Q(user=models.F("author")),
+            ),
+        ]
+
+    def __str__(self):
+        return f'@{self.user.username} подписан на @{self.author.username}'
