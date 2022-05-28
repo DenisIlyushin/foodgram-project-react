@@ -1,16 +1,20 @@
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from djoser.views import UserViewSet as DjoserUserViewSet
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from api.filters import IngredientSearchFilter
+from api.permissions import IsAdminOrReadOnly
+from recipes.models import Tag, Ingredient
 from users.models import Follow
 
-from api.serializers import FollowSerializer
+from api.serializers import FollowSerializer, IngredientSerializer, TagSerializer
 
 User = get_user_model()
 
@@ -65,3 +69,22 @@ class UserViewSet(DjoserUserViewSet):
             context={'request': request}
         )
         return self.get_paginated_response(serializer.data)
+
+
+class TagsViewSet(ReadOnlyModelViewSet):
+    permission_classes = (IsAdminOrReadOnly,)
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    pagination_class = None
+
+
+class IngredientsViewSet(ReadOnlyModelViewSet):
+    permission_classes = (IsAdminOrReadOnly,)
+    queryset = Ingredient.objects.all()
+    serializer_class = IngredientSerializer
+    filter_backends = (IngredientSearchFilter,)
+    search_fields = ('^name',)
+    pagination_class = None
+
+class RecipeViewSet(viewsets.ModelViewSet):
+    pass
