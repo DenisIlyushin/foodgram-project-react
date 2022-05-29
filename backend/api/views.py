@@ -1,5 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
+from django.db.models import F, Sum
+from django.http import HttpResponse
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -9,12 +11,17 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from api.filters import IngredientSearchFilter
-from api.permissions import IsAdminOrReadOnly
-from recipes.models import Tag, Ingredient
+from api.filters import IngredientSearchFilter, RecipeFilter
+from api.permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
+from api.serializers import (
+    FollowSerializer, IngredientSerializer, TagSerializer, RecipeSerializer,
+    FavoriteSerializer
+)
+from foodgram.settings import SHOPPING_LIST_FILE_NAME, SHOPPING_LIST_FORMAT
+from recipes.models import (
+    Tag, Ingredient, Recipe, Favorite, IngredientRecipe, ShoppingCart
+)
 from users.models import Follow
-
-from api.serializers import FollowSerializer, IngredientSerializer, TagSerializer
 
 User = get_user_model()
 
@@ -27,11 +34,11 @@ class UserViewSet(DjoserUserViewSet):
         detail=True,
         permission_classes=(IsAuthenticated,)
     )
-    def subscribe(self, request, id=None):
+    def subscribe(self, request, pk=None):
         try:
             follow = Follow.objects.create(
                 user=request.user,
-                author=get_object_or_404(User, id=id)
+                author=get_object_or_404(User, id=pk)
             )
         except IntegrityError:
             return Response(
@@ -48,11 +55,11 @@ class UserViewSet(DjoserUserViewSet):
         )
 
     @subscribe.mapping.delete
-    def del_subscribe(self, request, id=None):
+    def del_subscribe(self, request, pk=None):
         try:
             Follow.objects.filter(
                 user=request.user,
-                author=get_object_or_404(User, id=id)
+                author=get_object_or_404(User, id=pk)
             ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -82,9 +89,85 @@ class IngredientsViewSet(ReadOnlyModelViewSet):
     permission_classes = (IsAdminOrReadOnly,)
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    pagination_class = None
     filter_backends = (IngredientSearchFilter,)
     search_fields = ('^name',)
-    pagination_class = None
+
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    pass
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeSerializer
+    pagination_class = LimitOffsetPagination  # todo проверь падижинацию
+    filter_class = RecipeFilter
+    permission_classes = (IsOwnerOrReadOnly,)
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def add_object(self, model, user, pk):
+        if model.objects.filter(user=user, recipe__id=pk).exists():
+            return Response(
+                {'errors': 'Рецепт уже добавлен.'},
+                status=status.HTTP_400_BAD_REQUEST)
+        if model == Favorite or model == ShoppingCart:
+            recipe = get_object_or_404(Recipe, id=pk)
+            model.objects.create(user=user, recipe=recipe)
+            serializer = FavoriteSerializer(recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(
+                {'errors': 'Неизвестный метод или модель.'},
+                status=status.HTTP_400_BAD_REQUEST)
+
+    def delete_object(self, model, user, pk):
+        obj = model.objects.filter(user=user, recipe__id=pk)
+        if obj.exists():
+            obj.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        if model == Favorite or model == ShoppingCart:
+            return Response(
+                {'errors': 'Объект не существует или уже удален'},
+                status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+                {'errors': 'Неизвестный метод или модель.'},
+                status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post', 'delete'],
+            permission_classes=[IsAuthenticated])
+    def favorite(self, request, pk=None):
+        if request.method == 'POST':
+            return self.add_object(Favorite, request.user, pk)
+        elif request.method == 'DELETE':
+            return self.delete_object(Favorite, request.user, pk)
+        return None
+
+    @action(detail=True, methods=['post', 'delete'],
+            permission_classes=[IsAuthenticated])
+    def shopping_cart(self, request, pk=None):
+        if request.method == 'POST':
+            return self.add_object(ShoppingCart, request.user, pk)
+        elif request.method == 'DELETE':
+            return self.delete_object(ShoppingCart, request.user, pk)
+        return None
+
+    @action(detail=False, methods=['get'],
+            permission_classes=(IsAuthenticated,))
+    def download_shopping_cart(self, request):
+        shopping_list = IngredientRecipe.objects.filter(
+            recipe__shoppingcart__user=request.user).values(
+                name=F('ingredient__name'),
+                measurement_unit=F('ingredient__measurement_unit')
+        ).annotate(amount=Sum('amount'))
+        text = '\n'.join([
+            SHOPPING_LIST_FORMAT.format(
+                item['name'],
+                item['measurement_unit'],
+                item['amount']
+            )
+            for item in shopping_list
+        ])
+        response = HttpResponse(text, content_type='text/plain')
+        response['Content-Disposition'] = (
+            f'attachment; '
+            f'filename={SHOPPING_LIST_FILE_NAME}'
+        )
+        return response

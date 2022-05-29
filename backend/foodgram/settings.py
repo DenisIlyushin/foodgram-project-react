@@ -161,13 +161,17 @@ MEDIA_URL = '/media/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# todo code cleanup
 AUTH_USER_MODEL = 'users.User'
+
+# todo code cleanup
 
 INCORRECT_USERNAMES = [
     r'me$',
     r'.*[^\w.@+-_].*',
 ]
+
+SHOPPING_LIST_FORMAT = '{0} ({1}) \u2014 {2}'
+SHOPPING_LIST_FILE_NAME = 'shopping_cart.txt'
 
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 #
