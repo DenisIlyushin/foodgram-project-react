@@ -171,7 +171,10 @@ INCORRECT_USERNAMES = [
 ]
 
 SHOPPING_LIST_FORMAT = '{0} ({1}) \u2014 {2}'
+
 SHOPPING_LIST_FILE_NAME = 'shopping_cart.txt'
+
+MAX_COOKING_TIME = 720
 
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 #

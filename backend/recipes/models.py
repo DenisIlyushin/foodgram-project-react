@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from foodgram.settings import MAX_COOKING_TIME
 from recipes.validators import validate_color, validate_slug
 
 User = get_user_model()
@@ -94,9 +95,11 @@ class Recipe(DesignatedModel):
                 message='Время приготовления не может быть меньше минуты.'
             ),
             MaxValueValidator(
-                720,
+                MAX_COOKING_TIME,
                 message=('Мы не принимаем рецепты, которые '
-                         'надо готовить больше 12 часов.')
+                         'надо готовить больше {0} часов.').format(
+                    MAX_COOKING_TIME/60
+                )
             )
         ]
     )
