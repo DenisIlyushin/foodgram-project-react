@@ -27,18 +27,18 @@ User = get_user_model()
 
 
 class UserViewSet(DjoserUserViewSet):
-    pagination_class = LimitOffsetPagination
+    pagination_class = LimitOffsetPagination # todo проверь падижинацию
 
     @action(
         methods=('POST',),
         detail=True,
         permission_classes=(IsAuthenticated,)
     )
-    def subscribe(self, request, id=None):
+    def subscribe(self, request, pk=None):
         try:
             follow = Follow.objects.create(
                 user=request.user,
-                author=get_object_or_404(User, id=id)
+                author=get_object_or_404(User, id=pk)
             )
         except IntegrityError:
             return Response(
@@ -55,11 +55,11 @@ class UserViewSet(DjoserUserViewSet):
         )
 
     @subscribe.mapping.delete
-    def unsubscribe(self, request, id=None):
+    def unsubscribe(self, request, pk=None):
         try:
             Follow.objects.filter(
                 user=request.user,
-                author=get_object_or_404(User, id=id)
+                author=get_object_or_404(User, id=pk)
             ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
