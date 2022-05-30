@@ -186,6 +186,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             recipe=obj
         ).exists()
 
+    # todo code cleanup
     def create(self, validated_data):
         image = validated_data.pop('image')
         ingredients = validated_data.pop('ingredients')
