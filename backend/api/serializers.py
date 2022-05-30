@@ -8,7 +8,6 @@ from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from djoser.serializers import UserSerializer as DjoserUserSerializer
 from rest_framework import serializers
-from rest_framework.generics import get_object_or_404
 from rest_framework.validators import UniqueTogetherValidator
 
 from foodgram.settings import MAX_COOKING_TIME
@@ -59,39 +58,10 @@ class UserSerializer(DjoserUserSerializer):
         )
 
     def get_is_subscribed(self, obj):
-        # todo code cleanup
-        #   мне не очень нравится структура данного кода, кажется можно лучше
         user = self.context.get('request').user
-        if not user.is_anonymous:
-            return Follow.objects.filter(user=user, author=obj.id).exists()
-        return False
-
-
-class FollowSerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField(source='author.id')
-    email = serializers.ReadOnlyField(source='author.email')
-    username = serializers.ReadOnlyField(source='author.username')
-    first_name = serializers.ReadOnlyField(source='author.first_name')
-    last_name = serializers.ReadOnlyField(source='author.last_name')
-    is_subscribed = serializers.SerializerMethodField()
-    # recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Follow
-        fields = ('id', 'email', 'username', 'first_name', 'last_name',
-                  'is_subscribed', 'recipes_count')
-
-    def get_is_subscribed(self, obj):
-        return Follow.objects.filter(
-            user=obj.user, author=obj.author
-        ).exists()
-
-    # def get_recipes(self, obj):
-    #     return 10
-
-    def get_recipes_count(self, obj):
-        return Recipe.objects.filter(author=obj.author).count()
+        if user.is_anonymous:
+            return False
+        return Follow.objects.filter(user=user, author=obj.id).exists()
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -108,7 +78,9 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class IngredientRecipeSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='ingredient.id')
-    name = serializers.ReadOnlyField(source='ingredient.name')
+    name = serializers.ReadOnlyField(
+        source='ingredient.name'
+    )
     measurement_unit = serializers.ReadOnlyField(
         source='ingredient.measurement_unit'
     )
@@ -130,7 +102,6 @@ class RecipeSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     author = UserSerializer(read_only=True)
     cooking_time = serializers.IntegerField()
-
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
@@ -138,23 +109,15 @@ class RecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('__all__')
 
-    def validate_cooking_time(self, value):
-        if value < 1 or value > MAX_COOKING_TIME:
-            raise serializers.ValidationError({
-                'cooking_time': (
-                    'Время приготовления должно быть больше 1 минуты и '
-                    'меньше {0} часов'.format(MAX_COOKING_TIME/60)
-                )}
-            )
-        return value
-
-    def validate_ingredients(self, value):
-        if not value:
+    def validate(self, data):
+        print(f'initial data {self.initial_data}')
+        ingredients = self.initial_data.get('ingredients')
+        if not ingredients:
             raise serializers.ValidationError({
                 'ingredients': 'Нужен хоть один ингредиент для рецепта'}
             )
         ingredients_set = []
-        for ingredient in value:
+        for ingredient in ingredients:
             if int(ingredient['amount']) <= 0:
                 raise serializers.ValidationError({
                     'ingredients': (
@@ -171,15 +134,25 @@ class RecipeSerializer(serializers.ModelSerializer):
                     )
                 })
             ingredients_set.append(ingredient['id'])
-        return ingredients_set
+        data['ingredients'] = ingredients
 
-    def validate_tags(self, value):
         tags = self.initial_data.get('tags')
         if len(tags) > len(set(tags)):
             raise serializers.ValidationError({
                 'tags': 'Дважды один и тот же ярлык повторять нельзя.'
             })
-        return value
+        data['tags'] = tags
+
+        cooking_time = self.initial_data.get('cooking_time')
+        if cooking_time < 1 or cooking_time > MAX_COOKING_TIME:
+            raise serializers.ValidationError({
+                        'cooking_time': (
+                            'Время приготовления должно быть больше 1 минуты и '
+                            'меньше {0} часов'.format(MAX_COOKING_TIME/60)
+                        )}
+                    )
+        data['cooking_time'] = cooking_time
+        return data
 
     def get_ingredients(self, obj):
         return IngredientRecipeSerializer(
@@ -194,10 +167,6 @@ class RecipeSerializer(serializers.ModelSerializer):
                 ingredient_id=ingredient.get('id'),
                 amount=ingredient.get('amount'),
             )
-
-    def get_ingredients(self, obj):
-        ingredients = IngredientRecipe.objects.filter(recipe=obj)
-        return IngredientRecipeSerializer(ingredients, many=True).data
 
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
@@ -243,10 +212,43 @@ class RecipeSerializer(serializers.ModelSerializer):
         return instance
 
 
-class FavoriteSerializer(serializers.ModelSerializer):
+class FavoriteOrFollowSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
 
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
         read_only_fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class FollowSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source='author.id')
+    email = serializers.ReadOnlyField(source='author.email')
+    username = serializers.ReadOnlyField(source='author.username')
+    first_name = serializers.ReadOnlyField(source='author.first_name')
+    last_name = serializers.ReadOnlyField(source='author.last_name')
+    is_subscribed = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Follow
+        fields = ('id', 'email', 'username', 'first_name', 'last_name',
+                  'is_subscribed', 'recipes', 'recipes_count')
+
+    def get_is_subscribed(self, obj):
+        return Follow.objects.filter(
+            user=obj.user, author=obj.author
+        ).exists()
+
+    def get_recipes(self, obj):
+        recipes_set = Recipe.objects.filter(author=obj.author)
+        limit = self.context.get('request').GET.get('recipes_limit')
+        if limit:
+            recipes_set = recipes_set[:int(limit)]
+        return FavoriteOrFollowSerializer(
+            recipes_set,
+            many=True).data
+
+    def get_recipes_count(self, obj):
+        return Recipe.objects.filter(author=obj.author).count()

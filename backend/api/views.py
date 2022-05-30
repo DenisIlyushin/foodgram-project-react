@@ -15,7 +15,7 @@ from api.filters import IngredientSearchFilter, RecipeFilter
 from api.permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
 from api.serializers import (
     FollowSerializer, IngredientSerializer, TagSerializer, RecipeSerializer,
-    FavoriteSerializer
+    FavoriteOrFollowSerializer
 )
 from foodgram.settings import SHOPPING_LIST_FILE_NAME, SHOPPING_LIST_FORMAT
 from recipes.models import (
@@ -34,11 +34,11 @@ class UserViewSet(DjoserUserViewSet):
         detail=True,
         permission_classes=(IsAuthenticated,)
     )
-    def subscribe(self, request, pk=None):
+    def subscribe(self, request, id=None):
         try:
             follow = Follow.objects.create(
                 user=request.user,
-                author=get_object_or_404(User, id=pk)
+                author=get_object_or_404(User, id=id)
             )
         except IntegrityError:
             return Response(
@@ -55,11 +55,11 @@ class UserViewSet(DjoserUserViewSet):
         )
 
     @subscribe.mapping.delete
-    def del_subscribe(self, request, pk=None):
+    def unsubscribe(self, request, id=None):
         try:
             Follow.objects.filter(
                 user=request.user,
-                author=get_object_or_404(User, id=pk)
+                author=get_object_or_404(User, id=id)
             ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -104,6 +104,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
+    # todo при удалении вычищать картинки из media
+
     def add_object(self, model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
             return Response(
@@ -112,7 +114,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if model == Favorite or model == ShoppingCart:
             recipe = get_object_or_404(Recipe, id=pk)
             model.objects.create(user=user, recipe=recipe)
-            serializer = FavoriteSerializer(recipe)
+            serializer = FavoriteOrFollowSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(
                 {'errors': 'Неизвестный метод или модель.'},
