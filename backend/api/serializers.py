@@ -75,7 +75,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         fields = ('__all__')
 
     def validate(self, data):
-        print(f'initial data {self.initial_data}')
         ingredients = self.initial_data.get('ingredients')
         if not ingredients:
             raise serializers.ValidationError({
@@ -151,7 +150,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             recipe=obj
         ).exists()
 
-    # todo code cleanup
     def create(self, validated_data):
         image = validated_data.pop('image')
         ingredients = validated_data.pop('ingredients')
