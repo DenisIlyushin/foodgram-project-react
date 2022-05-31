@@ -34,11 +34,11 @@ class UserViewSet(DjoserUserViewSet):
         detail=True,
         permission_classes=(IsAuthenticated,)
     )
-    def subscribe(self, request, pk=None):
+    def subscribe(self, request, id=None):
         try:
             follow = Follow.objects.create(
                 user=request.user,
-                author=get_object_or_404(User, id=pk)
+                author=get_object_or_404(User, id=id)
             )
         except IntegrityError:
             return Response(
@@ -55,11 +55,11 @@ class UserViewSet(DjoserUserViewSet):
         )
 
     @subscribe.mapping.delete
-    def unsubscribe(self, request, pk=None):
+    def unsubscribe(self, request, id=None):
         try:
             Follow.objects.filter(
                 user=request.user,
-                author=get_object_or_404(User, id=pk)
+                author=get_object_or_404(User, id=id)
             ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -68,7 +68,8 @@ class UserViewSet(DjoserUserViewSet):
                 {'errors': f'Ошибка отписки. {e}'},
                 status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, permission_classes=(IsAuthenticated,))
+    @action(detail=False,
+            permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
         serializer = FollowSerializer(
             self.paginate_queryset(Follow.objects.filter(user=request.user)),
@@ -133,7 +134,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 {'errors': 'Неизвестный метод или модель.'},
                 status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['post', 'delete'],
+    @action(detail=True,
+            methods=['post', 'delete'],
             permission_classes=[IsAuthenticated])
     def favorite(self, request, pk=None):
         if request.method == 'POST':
@@ -142,7 +144,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return self.delete_object(Favorite, request.user, pk)
         return None
 
-    @action(detail=True, methods=['post', 'delete'],
+    @action(detail=True,
+            methods=['post', 'delete'],
             permission_classes=[IsAuthenticated])
     def shopping_cart(self, request, pk=None):
         if request.method == 'POST':
