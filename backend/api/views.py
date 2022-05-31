@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from api.filters import IngredientSearchFilter, RecipeFilter
+from api.pagination import LimitPageNumberPagination
 from api.permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
 from api.serializers import (
     FollowSerializer, IngredientSerializer, TagSerializer, RecipeSerializer,
@@ -27,7 +28,7 @@ User = get_user_model()
 
 
 class UserViewSet(DjoserUserViewSet):
-    pagination_class = LimitOffsetPagination # todo проверь падижинацию
+    pagination_class = LimitPageNumberPagination
 
     @action(
         methods=('POST',),
@@ -98,7 +99,7 @@ class IngredientsViewSet(ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    pagination_class = LimitOffsetPagination  # todo проверь падижинацию
+    pagination_class = LimitPageNumberPagination
     filter_class = RecipeFilter
     permission_classes = (IsOwnerOrReadOnly,)
 
