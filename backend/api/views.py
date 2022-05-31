@@ -106,8 +106,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    # todo при удалении вычищать картинки из media
-
     def add_object(self, model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
             return Response(

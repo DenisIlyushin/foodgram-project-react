@@ -15,23 +15,19 @@ DEBUG = True
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS_LIST', default='*').split()
 
-# Application definition
-
 INSTALLED_APPS = [
-    # todo code cleanup
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # for frameworks
+
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
     'django_filters',
 
-    # local
     'users.apps.UsersConfig',
     'recipes.apps.RecipesConfig',
     'api.apps.ApiConfig'
@@ -70,7 +66,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 
-# Database
 if DEBUG:
     DATABASES = {
         'default': {
@@ -91,7 +86,6 @@ else:
     }
 
 
-# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -112,20 +106,9 @@ DJOSER = {
     'LOGIN_FIELD': 'email',
     'SEND_ACTIVATION_EMAIL': False,
     'PERMISSIONS': {
-        # todo code cleanup
-        # 'activation': ['rest_framework.permissions.AllowAny'],
-        # 'password_reset': ['rest_framework.permissions.AllowAny'],
-        # 'password_reset_confirm': ['rest_framework.permissions.AllowAny'],
         'set_password': ['djoser.permissions.CurrentUserOrAdmin'],
-        # 'username_reset': ['rest_framework.permissions.AllowAny'],
-        # 'username_reset_confirm': ['rest_framework.permissions.AllowAny'],
-        # 'set_username': ['djoser.permissions.CurrentUserOrAdmin'],
-        # 'user_create': ['rest_framework.permissions.AllowAny'],
-        # 'user_delete': ['djoser.permissions.CurrentUserOrAdmin'],
         'user': ['rest_framework.permissions.AllowAny'],
         'user_list': ['rest_framework.permissions.AllowAny'],
-        # 'token_create': ['rest_framework.permissions.AllowAny'],
-        # 'token_destroy': ['rest_framework.permissions.IsAuthenticated'],
     },
 }
 
@@ -163,7 +146,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 AUTH_USER_MODEL = 'users.User'
 
-# todo code cleanup
 
 INCORRECT_USERNAMES = [
     r'me$',
@@ -175,7 +157,3 @@ SHOPPING_LIST_FORMAT = '{0} ({1}) \u2014 {2}'
 SHOPPING_LIST_FILE_NAME = 'shopping_cart.txt'
 
 MAX_COOKING_TIME = 720
-
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-#
-# EMAIL_HOST = 'localhost'
