@@ -107,7 +107,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             })
         data['tags'] = tags
 
-        cooking_time = self.initial_data.get('cooking_time')
+        cooking_time = float(self.initial_data.get('cooking_time'))
         if cooking_time < 1 or cooking_time > MAX_COOKING_TIME:
             raise serializers.ValidationError({
                         'cooking_time': (
@@ -160,6 +160,11 @@ class RecipeSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
+        # todo bug!
+        #  infra-backend-1  |   File "/app/api/serializers.py", line 163, in update
+        #  infra-backend-1  |     instance.image = validated_data.pop('image')
+        #  infra-backend-1  | KeyError: 'image'
+
         instance.image = validated_data.pop('image')
         instance.name = validated_data.pop('name')
         instance.text = validated_data.pop('text')
