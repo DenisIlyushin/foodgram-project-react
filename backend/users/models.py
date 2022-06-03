@@ -43,7 +43,6 @@ class User(AbstractUser):
                 name='username_unique_email',
             )
         ]
-
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
