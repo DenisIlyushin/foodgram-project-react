@@ -14,7 +14,7 @@ class IngredientAdmin(admin.ModelAdmin):
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'color', 'slug')
     search_fields = ('name', 'slug')
-    ordering = ('name', 'slug')
+    ordering = ('name', )
 
 
 class RecipeIngredientInline(admin.TabularInline):
@@ -25,10 +25,12 @@ class RecipeIngredientInline(admin.TabularInline):
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     inlines = (RecipeIngredientInline,)
-    list_display = ('author', 'name', 'text', )
-    search_fields = ('name',)
-    ordering = ('author', 'name', 'tags')
+    list_display = ('author', 'name', 'text', 'get_favorited')
+    search_fields = ('name', 'name', 'tags')
+    ordering = ('author', )
     empty_value_display = '-пусто-'
 
-    def is_favorite(self, obj):
+    def get_favorited(self, obj):
         return obj.favorites.count()
+
+    get_favorited.short_description = 'В избранном'

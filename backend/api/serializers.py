@@ -160,15 +160,13 @@ class RecipeSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        # todo bug!
-        #  infra-backend-1  |   File "/app/api/serializers.py", line 163, in update
-        #  infra-backend-1  |     instance.image = validated_data.pop('image')
-        #  infra-backend-1  | KeyError: 'image'
-
-        instance.image = validated_data.pop('image')
-        instance.name = validated_data.pop('name')
-        instance.text = validated_data.pop('text')
-        instance.cooking_time = validated_data.pop('cooking_time')
+        instance.image = validated_data.get('image', instance.image)
+        instance.name = validated_data.get('name', instance.name)
+        instance.text = validated_data.get('text', instance.text)
+        instance.cooking_time = validated_data.get(
+            'cooking_time',
+            instance.cooking_time
+        )
         instance.tags.clear()
         tags = validated_data.pop('tags')
         instance.tags.set(tags)
