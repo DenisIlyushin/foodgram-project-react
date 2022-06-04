@@ -133,6 +133,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
 
     def get_is_favorited(self, obj):
+        # todo bug в список избранного попадают посты другого пользователя
         user = self.context.get('request').user
         if user.is_anonymous:
             return False

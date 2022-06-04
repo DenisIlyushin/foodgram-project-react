@@ -180,12 +180,6 @@ class UserRecipeListGenerator(models.Model):
     class Meta:
         abstract = True
         ordering = ('user', 'recipe')
-        constraints = [
-            models.UniqueConstraint(
-                fields=['recipe', 'user'],
-                name='unique_recipe_list_for_user'
-            )
-        ]
 
 
 class Favorite(UserRecipeListGenerator):
@@ -194,6 +188,12 @@ class Favorite(UserRecipeListGenerator):
         default_related_name = 'favorites'
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранное'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'user'],
+                name='unique_recipe_fav_list_for_user'
+            )
+        ]
 
     def __str__(self):
         return (f'@{self.user.username} добавил '
@@ -206,6 +206,12 @@ class ShoppingCart(UserRecipeListGenerator):
         default_related_name = 'shopping_cart'
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Список покупок'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'user'],
+                name='unique_recipe_cart_list_for_user'
+            )
+        ]
 
     def __str__(self):
         return f'Список покупок для {self.recipe.name[:30]}'
