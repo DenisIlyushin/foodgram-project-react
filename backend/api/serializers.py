@@ -108,12 +108,13 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         cooking_time = float(self.initial_data.get('cooking_time'))
         if cooking_time < 1 or cooking_time > MAX_COOKING_TIME:
-            raise serializers.ValidationError({
-                        'cooking_time': (
-                            'Время приготовления должно быть больше 1 минуты и '
-                            'меньше {0} часов'.format(MAX_COOKING_TIME/60)
-                        )}
-                    )
+            raise serializers.ValidationError(
+                {'cooking_time': (
+                    'Время приготовления должно быть больше 1 минуты и '
+                    'меньше {0} часов.'.format(MAX_COOKING_TIME / 60)
+                )
+                }
+            )
         data['cooking_time'] = cooking_time
         return data
 

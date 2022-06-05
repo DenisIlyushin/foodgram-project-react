@@ -1,7 +1,6 @@
 import os
 
 from dotenv import load_dotenv
-import django_cleanup
 
 load_dotenv()
 

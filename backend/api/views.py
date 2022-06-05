@@ -115,8 +115,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer = FavoriteOrFollowSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(
-                {'errors': 'Неизвестный метод или модель.'},
-                status=status.HTTP_400_BAD_REQUEST)
+            {'errors': 'Неизвестный метод или модель.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     def _delete_object(self, model, user, pk):
         obj = model.objects.filter(user=user, recipe__id=pk)
@@ -126,10 +127,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if model == Favorite or model == ShoppingCart:
             return Response(
                 {'errors': 'Объект не существует или уже удален'},
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_400_BAD_REQUEST
+            )
         return Response(
-                {'errors': 'Неизвестный метод или модель.'},
-                status=status.HTTP_400_BAD_REQUEST)
+            {'errors': 'Неизвестный метод или модель.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

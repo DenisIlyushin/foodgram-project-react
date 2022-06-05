@@ -46,4 +46,3 @@ class FavoriteAdmin(admin.ModelAdmin):
 class ShoppingCartAdmin(admin.ModelAdmin):
     ordering = ('user', )
     search_fields = ('recipe', 'user')
-

@@ -98,7 +98,7 @@ class Recipe(DesignatedModel):
                 MAX_COOKING_TIME,
                 message=('Мы не принимаем рецепты, которые '
                          'надо готовить больше {0} часов.').format(
-                    MAX_COOKING_TIME/60
+                    MAX_COOKING_TIME / 60
                 )
             )
         ]
