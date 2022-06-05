@@ -15,7 +15,7 @@ class RecipeFilter(filters.FilterSet):
     tags = filters.AllValuesMultipleFilter(
         field_name='tags__slug'
     )
-    author = filters.NumberFilter(
+    author = filters.ModelChoiceFilter(
         queryset=User.objects.all()
     )
     is_favorited = filters.BooleanFilter(
