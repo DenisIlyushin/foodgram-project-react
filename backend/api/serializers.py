@@ -5,8 +5,7 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from api.fields import Base64ImageField
 from foodgram.settings import MAX_COOKING_TIME
-from recipes.models import Recipe, Tag, Ingredient, IngredientRecipe, \
-    ShoppingCart, Favorite
+from recipes.models import Recipe, Tag, Ingredient, IngredientRecipe
 from users.models import Follow
 
 User = get_user_model()
