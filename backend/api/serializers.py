@@ -1,11 +1,12 @@
-from django.contrib.auth import get_user_model
 from djoser.serializers import UserSerializer as DjoserUserSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
+from django.contrib.auth import get_user_model
+
 from api.fields import Base64ImageField
 from foodgram.settings import MAX_COOKING_TIME
-from recipes.models import Recipe, Tag, Ingredient, IngredientRecipe
+from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag
 from users.models import Follow
 
 User = get_user_model()

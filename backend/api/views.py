@@ -1,7 +1,3 @@
-from django.contrib.auth import get_user_model
-from django.db import IntegrityError
-from django.db.models import F, Sum
-from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import status, viewsets
@@ -11,16 +7,21 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from django.contrib.auth import get_user_model
+from django.db import IntegrityError
+from django.db.models import F, Sum
+from django.http import HttpResponse
+
 from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import LimitPageNumberPagination
 from api.permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
 from api.serializers import (
-    FollowSerializer, IngredientSerializer, TagSerializer, RecipeSerializer,
-    FavoriteOrFollowSerializer
+    FavoriteOrFollowSerializer, FollowSerializer, IngredientSerializer,
+    RecipeSerializer, TagSerializer
 )
 from foodgram.settings import SHOPPING_LIST_FILE_NAME, SHOPPING_LIST_FORMAT
 from recipes.models import (
-    Tag, Ingredient, Recipe, Favorite, IngredientRecipe, ShoppingCart
+    Favorite, Ingredient, IngredientRecipe, Recipe, ShoppingCart, Tag
 )
 from users.models import Follow
 
