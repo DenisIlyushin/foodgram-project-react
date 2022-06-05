@@ -1,6 +1,7 @@
 import os
 
 from dotenv import load_dotenv
+import django_cleanup
 
 load_dotenv()
 
@@ -11,7 +12,7 @@ SECRET_KEY = os.getenv(
     default='defau1tSecretKey'
 )
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS_LIST', default='*').split()
 
@@ -30,7 +31,9 @@ INSTALLED_APPS = [
 
     'users.apps.UsersConfig',
     'recipes.apps.RecipesConfig',
-    'api.apps.ApiConfig'
+    'api.apps.ApiConfig',
+
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [

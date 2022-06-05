@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from recipes.models import Ingredient, Tag, Recipe
+from recipes.models import Ingredient, Tag, Recipe, Favorite, ShoppingCart
 
 
 @admin.register(Ingredient)
@@ -34,3 +34,16 @@ class RecipeAdmin(admin.ModelAdmin):
         return obj.favorites.count()
 
     get_favorited.short_description = 'В избранном'
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    ordering = ('user', )
+    search_fields = ('recipe', 'user')
+
+
+@admin.register(ShoppingCart)
+class ShoppingCartAdmin(admin.ModelAdmin):
+    ordering = ('user', )
+    search_fields = ('recipe', 'user')
+

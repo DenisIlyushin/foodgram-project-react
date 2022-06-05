@@ -2,16 +2,16 @@ from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.db.models import F, Sum
 from django.http import HttpResponse
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from api.filters import IngredientSearchFilter, RecipeFilter
+from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import LimitPageNumberPagination
 from api.permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
 from api.serializers import (
@@ -92,7 +92,7 @@ class IngredientsViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
-    filter_backends = (IngredientSearchFilter,)
+    filter_backends = (IngredientFilter,)
     search_fields = ('^name',)
 
 
@@ -100,13 +100,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     pagination_class = LimitPageNumberPagination
+    filter_backends = (DjangoFilterBackend,)
     filter_class = RecipeFilter
     permission_classes = (IsOwnerOrReadOnly,)
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
-    def add_object(self, model, user, pk):
+    def _add_object(self, model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
             return Response(
                 {'errors': 'Рецепт уже добавлен.'},
@@ -120,7 +118,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 {'errors': 'Неизвестный метод или модель.'},
                 status=status.HTTP_400_BAD_REQUEST)
 
-    def delete_object(self, model, user, pk):
+    def _delete_object(self, model, user, pk):
         obj = model.objects.filter(user=user, recipe__id=pk)
         if obj.exists():
             obj.delete()
@@ -133,14 +131,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 {'errors': 'Неизвестный метод или модель.'},
                 status=status.HTTP_400_BAD_REQUEST)
 
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
     @action(detail=True,
             methods=['post', 'delete'],
             permission_classes=[IsAuthenticated])
     def favorite(self, request, pk=None):
         if request.method == 'POST':
-            return self.add_object(Favorite, request.user, pk)
+            return self._add_object(Favorite, request.user, pk)
         elif request.method == 'DELETE':
-            return self.delete_object(Favorite, request.user, pk)
+            return self._delete_object(Favorite, request.user, pk)
         return None
 
     @action(detail=True,
@@ -148,9 +149,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=[IsAuthenticated])
     def shopping_cart(self, request, pk=None):
         if request.method == 'POST':
-            return self.add_object(ShoppingCart, request.user, pk)
+            return self._add_object(ShoppingCart, request.user, pk)
         elif request.method == 'DELETE':
-            return self.delete_object(ShoppingCart, request.user, pk)
+            return self._delete_object(ShoppingCart, request.user, pk)
         return None
 
     @action(detail=False, methods=['get'],
