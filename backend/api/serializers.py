@@ -3,7 +3,7 @@ from djoser.serializers import UserSerializer as DjoserUserSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from api.gears import Base64ImageField
+from api.fields import Base64ImageField
 from foodgram.settings import MAX_COOKING_TIME
 from recipes.models import Recipe, Tag, Ingredient, IngredientRecipe, \
     ShoppingCart, Favorite
@@ -133,7 +133,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
 
     def get_is_favorited(self, obj):
-        # todo bug в список избранного попадают посты другого пользователя
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
