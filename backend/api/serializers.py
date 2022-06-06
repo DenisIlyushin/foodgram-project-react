@@ -1,8 +1,7 @@
+from django.contrib.auth import get_user_model
 from djoser.serializers import UserSerializer as DjoserUserSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
-
-from django.contrib.auth import get_user_model
 
 from api.fields import Base64ImageField
 from foodgram.settings import MAX_COOKING_TIME
@@ -72,39 +71,42 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('__all__')
+        fields = (
+            'id', 'tags', 'author', 'ingredients', 'is_favorited',
+            'is_in_shopping_cart', 'name', 'image', 'text', 'cooking_time'
+        )
 
     def validate(self, data):
         ingredients = self.initial_data.get('ingredients')
         if not ingredients:
-            raise serializers.ValidationError({
-                'ingredients': 'Нужен хоть один ингредиент для рецепта'}
+            raise serializers.ValidationError(
+                {'ingredients': 'Нужен хоть один ингредиент для рецепта'}
             )
         ingredients_set = []
         for ingredient in ingredients:
             if int(ingredient['amount']) <= 0:
-                raise serializers.ValidationError({
-                    'ingredients': (
+                raise serializers.ValidationError(
+                    {'ingredients': (
                         'Количество ингредиентов должно быть целым '
                         'и больше 0.'
                     )}
                 )
             if ingredient['id'] in ingredients_set:
-                raise serializers.ValidationError({
-                    'ingredients': (
+                raise serializers.ValidationError(
+                    {'ingredients': (
                         'Дважды один и тот же ингредиент '
                         'в рецепт положить нельзя. Может '
                         'быть стоит изменить его количество?'
-                    )
-                })
+                    )}
+                )
             ingredients_set.append(ingredient['id'])
         data['ingredients'] = ingredients
 
         tags = self.initial_data.get('tags')
         if len(tags) > len(set(tags)):
-            raise serializers.ValidationError({
-                'tags': 'Дважды один и тот же ярлык повторять нельзя.'
-            })
+            raise serializers.ValidationError(
+                {'tags': 'Дважды один и тот же ярлык повторять нельзя.'}
+            )
         data['tags'] = tags
 
         cooking_time = float(self.initial_data.get('cooking_time'))
@@ -113,8 +115,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 {'cooking_time': (
                     'Время приготовления должно быть больше 1 минуты и '
                     'меньше {0} часов.'.format(MAX_COOKING_TIME / 60)
-                )
-                }
+                )}
             )
         data['cooking_time'] = cooking_time
         return data
@@ -125,7 +126,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             many=True
         ).data
 
-    def create_ingredients(self, recipe, ingredients):
+    def _create_ingredients(self, recipe, ingredients):
         for ingredient in ingredients:
             IngredientRecipe.objects.create(
                 recipe=recipe,
@@ -157,7 +158,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(image=image, **validated_data)
         recipe.tags.set(tags)
-        self.create_ingredients(recipe, ingredients)
+        self._create_ingredients(recipe, ingredients)
         return recipe
 
     def update(self, instance, validated_data):
@@ -172,7 +173,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         tags = validated_data.pop('tags')
         instance.tags.set(tags)
         IngredientRecipe.objects.filter(recipe=instance).all().delete()
-        self.create_ingredients(
+        self._create_ingredients(
             recipe=instance,
             ingredients=validated_data.get('ingredients')
         )
