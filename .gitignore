@@ -140,3 +140,4 @@ dmypy.json
 
 # dev media folder
 /backend/media/
+/infra/.wasworking
