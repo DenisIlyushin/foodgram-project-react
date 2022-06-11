@@ -11,7 +11,7 @@ SECRET_KEY = os.getenv(
     default='defau1tSecretKey'
 )
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS_LIST', default='*').split()
 
@@ -67,7 +67,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
-
 if DEBUG:
     DATABASES = {
         'default': {
@@ -87,7 +86,6 @@ else:
         }
     }
 
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -102,7 +100,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
 
 DJOSER = {
     'LOGIN_FIELD': 'email',
@@ -126,7 +123,6 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 }
 
-
 LANGUAGE_CODE = 'ru-RU'
 
 TIME_ZONE = 'Europe/Moscow'
@@ -137,7 +133,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
@@ -147,7 +142,6 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 AUTH_USER_MODEL = 'users.User'
-
 
 INCORRECT_USERNAMES = [
     r'me$',

@@ -1,3 +1,7 @@
+from django.contrib.auth import get_user_model
+from django.db import IntegrityError
+from django.db.models import F, Sum
+from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import status, viewsets
@@ -6,11 +10,6 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
-
-from django.contrib.auth import get_user_model
-from django.db import IntegrityError
-from django.db.models import F, Sum
-from django.http import HttpResponse
 
 from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import LimitPageNumberPagination
@@ -37,6 +36,9 @@ class UserViewSet(DjoserUserViewSet):
         permission_classes=(IsAuthenticated,)
     )
     def subscribe(self, request, id=None):
+        # todo Валидацию стоит вынести в сериализатор
+        #  пока не смог осознать, мне в валидатор надо передать объект Follow
+        #  все ошибки возникают до этого момента
         try:
             follow = Follow.objects.create(
                 user=request.user,
@@ -58,17 +60,11 @@ class UserViewSet(DjoserUserViewSet):
 
     @subscribe.mapping.delete
     def unsubscribe(self, request, id=None):
-        try:
-            Follow.objects.filter(
-                user=request.user,
-                author=get_object_or_404(User, id=id)
-            ).delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-        except Exception as e:
-            return Response(
-                {'errors': f'Ошибка отписки. {e}'},
-                status=status.HTTP_400_BAD_REQUEST)
+        Follow.objects.filter(
+            user=request.user,
+            author=get_object_or_404(User, id=id)
+        ).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False,
             permission_classes=(IsAuthenticated,))
@@ -163,14 +159,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_shopping_cart(self, request):
         shopping_list = IngredientRecipe.objects.filter(
             recipe__shopping_cart__user=request.user).values(
-                name=F('ingredient__name'),
-                measurement_unit=F('ingredient__measurement_unit')
-        ).annotate(amount=Sum('amount'))
+            name=F('ingredient__name'),
+            measurement_unit=F('ingredient__measurement_unit')
+        ).annotate(total_amount=Sum('amount'))
         text = '\n'.join([
             SHOPPING_LIST_FORMAT.format(
                 item['name'],
                 item['measurement_unit'],
-                item['amount']
+                item['total_amount']
             )
             for item in shopping_list
         ])

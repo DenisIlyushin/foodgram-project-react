@@ -4,16 +4,14 @@ import imghdr
 import uuid
 
 import six
-from rest_framework import serializers
-
 from django.core.files.base import ContentFile
+from rest_framework import serializers
 
 
 class Base64ImageField(serializers.ImageField):
-    EMPTY_VALUES = (None, "", [], (), {})
 
     def to_internal_value(self, data):
-        if data in self.EMPTY_VALUES:
+        if not data:
             return None
 
         if isinstance(data, six.string_types):
@@ -31,5 +29,5 @@ class Base64ImageField(serializers.ImageField):
 
     def get_file_extension(self, file_name, decoded_file):
         extension = imghdr.what(file_name, decoded_file)
-        extension = "jpg" if extension == "jpeg" else extension
+        extension = 'jpg' if extension == 'jpeg' else extension
         return extension

@@ -183,7 +183,6 @@ class UserRecipeListGenerator(models.Model):
 
 
 class Favorite(UserRecipeListGenerator):
-
     class Meta(UserRecipeListGenerator.Meta):
         default_related_name = 'favorites'
         verbose_name = 'Избранное'
@@ -201,7 +200,6 @@ class Favorite(UserRecipeListGenerator):
 
 
 class ShoppingCart(UserRecipeListGenerator):
-
     class Meta(UserRecipeListGenerator.Meta):
         default_related_name = 'shopping_cart'
         verbose_name = 'Список покупок'
