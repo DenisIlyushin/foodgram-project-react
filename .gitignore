@@ -140,4 +140,7 @@ dmypy.json
 
 # dev media folder
 /backend/media/
+
+#dev sketch files
 /infra/.wasworking
+/backend/api/try.py

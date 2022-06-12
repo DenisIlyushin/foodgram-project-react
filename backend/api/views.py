@@ -33,29 +33,66 @@ class UserViewSet(DjoserUserViewSet):
     @action(
         methods=('POST',),
         detail=True,
-        permission_classes=(IsAuthenticated,)
+        permission_classes=(IsAuthenticated,),
     )
     def subscribe(self, request, id=None):
-        # todo Валидацию стоит вынести в сериализатор
-        #  пока не смог осознать, мне в валидатор надо передать объект Follow
-        #  все ошибки возникают до этого момента
-        try:
-            follow = Follow.objects.create(
-                user=request.user,
-                author=get_object_or_404(User, id=id)
-            )
-        except IntegrityError:
-            return Response(
-                {'errors': (
-                    'Ошибка подписки. Нельзя подписываться '
-                    'повторно или на самого себя.'
-                )},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        serializer = FollowSerializer(follow, context={'request': request})
+        # # todo Валидацию стоит вынести в сериализатор
+        # #  пока не смог осознать, мне в валидатор надо передать объект Follow
+        # #  все ошибки возникают до этого момента
+        # try:
+        #     follow = Follow.objects.create(
+        #         user=request.user,
+        #         author=get_object_or_404(User, id=id)
+        #     )
+        # except IntegrityError:
+        #     return Response(
+        #         {'errors': (
+        #             'Ошибка подписки. Нельзя подписываться '
+        #             'повторно или на самого себя.'
+        #         )},
+        #         status=status.HTTP_400_BAD_REQUEST
+        #     )
+        # serializer = FollowSerializer(follow, context={'request': request})
+        # return Response(
+        #     serializer.data,
+        #     status=status.HTTP_201_CREATED
+        # )
+
+        # follow, created = Follow.objects.get_or_create(
+        #     user=request.user,
+        #     author=get_object_or_404(User, id=id)
+        # )
+        # serializer = FollowSerializer(follow, context={'request': request})
+        # if created:
+        #     return Response(
+        #         serializer.data,
+        #         status=status.HTTP_201_CREATED
+        #     )
+        # return Response(
+        #     serializer.data,
+        #     status=status.HTTP_200_OK
+        # )
+
+        data = request.data
+        data['user'] = request.user.id
+        data['author'] = id
+        user = request.user
+        author = get_object_or_404(User, id=id)
+        follow = Follow(user=user, author=author)
+
+        print(data)
+        serializer = FollowSerializer(
+            follow,
+            data=data,
+            context={'request': request},
+        )
+        print(serializer)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        # headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data,
-            status=status.HTTP_201_CREATED
+            status=status.HTTP_201_CREATED,
         )
 
     @subscribe.mapping.delete

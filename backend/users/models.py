@@ -89,3 +89,6 @@ class Follow(models.Model):
 
     def __str__(self):
         return f'@{self.user.username} подписан на @{self.author.username}'
+
+    def get_email_field_name(self):
+        return self.author.email
