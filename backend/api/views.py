@@ -75,18 +75,18 @@ class UserViewSet(DjoserUserViewSet):
 
         data = request.data
         data['user'] = request.user.id
-        data['author'] = id
+        data['author'] = int(id)
         user = request.user
         author = get_object_or_404(User, id=id)
         follow = Follow(user=user, author=author)
 
-        print(data)
+        # print(data)
         serializer = FollowSerializer(
             follow,
             data=data,
             context={'request': request},
         )
-        print(serializer)
+        # print(serializer)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         # headers = self.get_success_headers(serializer.data)
