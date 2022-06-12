@@ -201,7 +201,6 @@ class FollowSerializer(serializers.ModelSerializer):
             'id', 'email', 'username', 'first_name', 'last_name',
             'is_subscribed', 'recipes', 'recipes_count',
         )
-        read_only_fields = ('user', 'author')
 
     def validate(self, data):
         _data = self.context['request'].data
@@ -237,7 +236,8 @@ class FollowSerializer(serializers.ModelSerializer):
             recipes_set = recipes_set[:int(limit)]
         return FavoriteOrFollowSerializer(
             recipes_set,
-            many=True).data
+            many=True
+        ).data
 
     def get_recipes_count(self, obj):
         return Recipe.objects.filter(author=obj.author).count()
