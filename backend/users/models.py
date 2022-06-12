@@ -17,7 +17,7 @@ class User(AbstractUser):
         max_length=150,
         blank=False,
         unique=True,
-        validators=(validate_username, ),
+        validators=(validate_username,),
         verbose_name='Псевдоним',
     )
     first_name = models.CharField(

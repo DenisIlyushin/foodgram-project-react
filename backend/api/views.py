@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.db import IntegrityError
 from django.db.models import F, Sum
 from django.http import HttpResponse, Http404
 from django_filters.rest_framework import DjangoFilterBackend
