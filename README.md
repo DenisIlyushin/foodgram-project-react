@@ -148,6 +148,35 @@ docker-compose down
 docker-compose up -d
 ```
 
+## Запуск проекта на удаленном сервере
+
+1. Скопируйте в корень домашней папки на удаленном сервере следующие файлы и директории
+- ./docs/
+- ./frontend/
+- ./infra/docker-compose-deploy.yml
+- ./infra/nginx-deploy.config
+- ./infra/.env.example
+
+2. Создайте файл .env в корне домашней папки на удаленном сервере, заполните по образцу
+из файла .env.example
+
+3. В файле docker-compose-deploy.yml в строке 8 замените `/home/denisilyushin/` на путь 
+до вашей домашней директории на удаленном сервере.
+
+4. Переименуйте файлы на удаленном сервере:
+- ~/docker-compose-deploy.yml -> ~/docker-compose.yml
+- ~/nginx-deploy.config -> ~/nginx.config
+
+5. Установите docker согласно руководству на официальном сайте
+
+6. Запустите проект командой 
+```bash
+docker-compose up -d --build
+```
+
+## Github-actions
+(в разработке)
+
 ### Восстановление данных из резервной копии
 ```bash
 docker-compose exec backend bash
@@ -171,5 +200,10 @@ python manage.py loaddata dump.json
 
 ## Ссылки на deploy-сервер
 
-(в разработке)
+(в разработке - github actions еще не реализованы)
 51.250.29.138
+([Тестовый сервер](http://denisilyushin.ddns.net))
+
+Аккаунт для ревью:
+логин review@mail.fake
+пароль letsreviewthis

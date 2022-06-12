@@ -5,16 +5,13 @@ services:
     container_name: db
     image: postgres:13.4
     volumes:
-      - dbdata:/var/lib/postgresql/data/
+      - /home/denisilyushin/.dbdata:/var/lib/postgresql/data/
     env_file:
-      - ../backend/.env
-
+      - .env
 
   backend:
     container_name: backend
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
+    image: denisilyushin/foodgrambackend:deploy
     restart: always
     volumes:
       - static_value:/app/static/
@@ -22,15 +19,13 @@ services:
     depends_on:
       - db
     env_file:
-      - ../backend/.env
+      - .env
 
   frontend:
     container_name: frontend
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: denisilyushin/foodgramfrontend:v.1.0
     volumes:
-      - ../frontend/:/app/result_build/
+      - ./frontend/:/app/result_build/
     depends_on:
       - backend
 
@@ -53,4 +48,4 @@ services:
 volumes:
   static_value:
   media_value:
-  dbdata:
+  data:
