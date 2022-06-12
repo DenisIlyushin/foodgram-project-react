@@ -172,3 +172,4 @@ python manage.py loaddata dump.json
 ## Ссылки на deploy-сервер
 
 (в разработке)
+51.250.29.138
