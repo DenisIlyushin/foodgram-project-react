@@ -200,50 +200,27 @@ class FollowSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'email', 'username', 'first_name', 'last_name',
             'is_subscribed', 'recipes', 'recipes_count',
-            # 'user', 'author'
         )
         read_only_fields = ('user', 'author')
-        # validators = [
-        #     UniqueTogetherValidator(
-        #         queryset=Follow.objects.all(),
-        #         fields=('user', 'author'),
-        #         message='Нельзя повторно подписаться на автора.'
-        #     )
-        # ]
-
 
     def validate(self, data):
         _data = self.context['request'].data
-        print('VALIDATING')
-        print(data)
-        print(_data)
-        print(_data['user'])
-        print(_data['author'])
-
-        if _data['user'] == _data['author']:
-            print('Self subscribe true')
+        user_id = _data['user_id']
+        author_id = _data['author_id']
+        if user_id == author_id:
             raise serializers.ValidationError(
                 'Ошибка подписки. Нельзя подписаться на самого себя.'
             )
         if Follow.objects.filter(
-                user=_data['user'],
-                author=_data['author']
+                user=user_id,
+                author=author_id
         ).exists():
             raise serializers.ValidationError(
                 'Ошибка подписки. Нельзя подписаться повторно.'
             )
-
-        data['user'] = User.objects.get(id=_data['user'])
-        data['author'] = User.objects.get(id=_data['author'])
-
+        data['user'] = User.objects.get(id=user_id)
+        data['author'] = User.objects.get(id=author_id)
         return data
-
-    # def validate_username(self, value):
-    #     print(value)
-    #     if value == self.context['request'].user:
-    #         raise serializers.ValidationError(
-    #             'Ошибка подписки. Нельзя подписываться на самого себя.'
-    #         )
 
     def create(self, validated_data):
         return Follow.objects.create(**validated_data)

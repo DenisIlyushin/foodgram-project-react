@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.db.models import F, Sum
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import status, viewsets
@@ -36,64 +36,28 @@ class UserViewSet(DjoserUserViewSet):
         permission_classes=(IsAuthenticated,),
     )
     def subscribe(self, request, id=None):
-        # # todo Валидацию стоит вынести в сериализатор
-        # #  пока не смог осознать, мне в валидатор надо передать объект Follow
-        # #  все ошибки возникают до этого момента
-        # try:
-        #     follow = Follow.objects.create(
-        #         user=request.user,
-        #         author=get_object_or_404(User, id=id)
-        #     )
-        # except IntegrityError:
-        #     return Response(
-        #         {'errors': (
-        #             'Ошибка подписки. Нельзя подписываться '
-        #             'повторно или на самого себя.'
-        #         )},
-        #         status=status.HTTP_400_BAD_REQUEST
-        #     )
-        # serializer = FollowSerializer(follow, context={'request': request})
-        # return Response(
-        #     serializer.data,
-        #     status=status.HTTP_201_CREATED
-        # )
-
-        # follow, created = Follow.objects.get_or_create(
-        #     user=request.user,
-        #     author=get_object_or_404(User, id=id)
-        # )
-        # serializer = FollowSerializer(follow, context={'request': request})
-        # if created:
-        #     return Response(
-        #         serializer.data,
-        #         status=status.HTTP_201_CREATED
-        #     )
-        # return Response(
-        #     serializer.data,
-        #     status=status.HTTP_200_OK
-        # )
-
-        data = request.data
-        data['user'] = request.user.id
-        data['author'] = int(id)
-        user = request.user
-        author = get_object_or_404(User, id=id)
-        follow = Follow(user=user, author=author)
-
-        # print(data)
-        serializer = FollowSerializer(
-            follow,
-            data=data,
-            context={'request': request},
-        )
-        # print(serializer)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        # headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED,
-        )
+        try:
+            request.data['user_id'] = request.user.id
+            request.data['author_id'] = int(id)
+            serializer = FollowSerializer(
+                Follow(
+                    user=request.user,
+                    author=get_object_or_404(User, id=id)
+                ),
+                data=request.data,
+                context={'request': request},
+            )
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED,
+            )
+        except Http404:
+            return Response(
+                {'errors': 'Автор не найден.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
     @subscribe.mapping.delete
     def unsubscribe(self, request, id=None):
