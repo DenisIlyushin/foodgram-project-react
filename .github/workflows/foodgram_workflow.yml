@@ -60,9 +60,63 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/foodgrambackend:deploy
 
-  send_message:
+  deploy:
     runs-on: ubuntu-latest
     needs: build_and_push_to_docker_hub
+    if:
+      contains('
+      refs/heads/main
+      refs/heads/master
+      ', github.ref)
+    steps:
+      - name: executing remote ssh commands to deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_SERVER }}
+          username: ${{ secrets.HOST_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+#          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script: |
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgrambackend:deploy
+            sudo docker-compose stop
+            sudo docker-compose rm backend
+            
+#            rm .env -f
+#            touch .env
+#
+#            echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
+#            echo DB_NAME=${{ secrets.DB_NAME }} >> .env
+#            echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
+#            echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
+#            echo DB_HOST=${{ secrets.DB_HOST }} >> .env
+#            echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+            
+            
+            # перезапускаем контейнеры
+            sudo docker-compose up -d 
+            
+            # миграции
+            sudo docker-compose exec -T web python manage.py migrate
+            
+            # создание пользовательского админа Django
+            echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='${{ secrets.DJANGO_ADMIN_USERNAME }}').exists() or User.objects.create_superuser('${{ secrets.DJANGO_ADMIN_USERNAME }}', '${{ secrets.DJANGO_ADMIN_EMAIL }}', '${{ secrets.DJANGO_ADMIN_PASSWORD }}')" | sudo docker-compose exec -T web python manage.py shell
+            
+            # Создание админа Django по умполчанию
+            # echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'admin@fake.fake', 'admin')" | sudo docker-compose exec -T web python manage.py shell
+            
+            # Настройка статики
+            sudo docker-compose exec -T web python manage.py collectstatic --no-input
+            
+            # Наполнение базы стандартными данными
+            # sudo docker-compose exec -Т web python manage.py imprint_initial_data
+            
+            # Обслуживание Docker. Удаление старых образов
+            sudo docker system prune -af
+            sudo docker volume prune -f
+
+  send_message:
+    runs-on: ubuntu-latest
+    needs: deploy
     steps:
       - name: send message
         uses: appleboy/telegram-action@master
