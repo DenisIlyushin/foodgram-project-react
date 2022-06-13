@@ -78,13 +78,13 @@ jobs:
             sudo docker compose up -d 
             
             # миграции
-            sudo docker-compose exec -it backend python manage.py migrate
+            sudo docker compose exec -it backend python manage.py migrate
             
             # создание пользовательского админа Django
             echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='${{ secrets.DJANGO_ADMIN_USERNAME }}').exists() or User.objects.create_superuser('${{ secrets.DJANGO_ADMIN_USERNAME }}', '${{ secrets.DJANGO_ADMIN_EMAIL }}', '${{ secrets.DJANGO_ADMIN_PASSWORD }}')" | sudo docker compose exec -it backend python manage.py shell
             
             # Создание админа Django по умполчанию
-            # echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'admin@fake.fake', 'admin')" | sudo docker-compose exec -T backend python manage.py shell
+            # echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'admin@fake.fake', 'admin')" | sudo docker compose exec -T backend python manage.py shell
             
             # Настройка статики
             sudo docker compose exec -it backend python manage.py collectstatic --no-input
