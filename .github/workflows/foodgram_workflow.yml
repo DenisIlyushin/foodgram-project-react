@@ -90,7 +90,7 @@ jobs:
             sudo docker compose exec -it backend python manage.py collectstatic --no-input
             
             # Наполнение базы стандартными данными
-            # sudo docker compose exec -it backend python manage.py imprint_initial_data
+            sudo docker compose exec -it backend python manage.py imprint_initial_data
             
             # Обслуживание Docker. Удаление старых образов
             sudo docker system prune -af
