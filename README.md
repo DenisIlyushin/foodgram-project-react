@@ -183,6 +183,10 @@ docker-compose up -d
 docker-compose up -d --build
 ```
 
+#### Особенености сборки
+- Файлы базы данных буцдут сохранены в ~/.dbdata
+- CI/CD не подразумевает замену 
+
 ## Github-actions
 (в разработке)
 
