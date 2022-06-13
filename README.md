@@ -208,8 +208,8 @@ cd ~/.ssh
 # passphase не устанавливать
 ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 ```
-[image](https://zellwk.com/images/2021/github-actions-deploy/name-ssh-key-file.png) \
-[image](https://zellwk.com/images/2021/github-actions-deploy/passphrase-empty.png)
+![image](https://zellwk.com/images/2021/github-actions-deploy/name-ssh-key-file.png) \
+![image](https://zellwk.com/images/2021/github-actions-deploy/passphrase-empty.png)
 ```bash
 # добавляем публичный ключ в список разрешенных ключей
 cat github-actions.pub >> authorized_keys
