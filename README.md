@@ -10,6 +10,15 @@
 
 ![example workflow](https://github.com/DenisIlyushin/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
 
+---
+
+## [Тестовый сервер](http://denisilyushin.ddns.net)
+
+**логин** review@mail.fake \
+**пароль** letsreviewthis
+
+---
+
 ## Технологии
 - Python `v3.7`
 - Django `v2.2.19`
@@ -151,11 +160,11 @@ docker-compose up -d
 ## Запуск проекта на удаленном сервере
 
 1. Скопируйте в корень домашней папки на удаленном сервере следующие файлы и директории
-- ./docs/
-- ./frontend/
-- ./infra/docker-compose-deploy.yml
-- ./infra/nginx-deploy.config
-- ./infra/.env.example
+- `./docs/*`
+- `./frontend/*`
+- `./infra/docker-compose-deploy.yml`
+- `./infra/nginx-deploy.config`
+- `./infra/.env.example`
 
 2. Создайте файл .env в корне домашней папки на удаленном сервере, заполните по образцу
 из файла .env.example
@@ -164,8 +173,8 @@ docker-compose up -d
 до вашей домашней директории на удаленном сервере.
 
 4. Переименуйте файлы на удаленном сервере:
-- ~/docker-compose-deploy.yml -> ~/docker-compose.yml
-- ~/nginx-deploy.config -> ~/nginx.config
+- `~/docker-compose-deploy.yml` -> `~/docker-compose.yml`
+- `~/nginx-deploy.config` -> `~/nginx.config`
 
 5. Установите docker согласно руководству на официальном сайте
 
@@ -197,13 +206,3 @@ python manage.py loaddata dump.json
 
 ### Автор проекта
 **Денис Илюшин** ([DenisIlyushin](https://github.com/DenisIlyushin/))
-
-## Ссылки на deploy-сервер
-
-(в разработке - github actions еще не реализованы)
-51.250.29.138
-([Тестовый сервер](http://denisilyushin.ddns.net))
-
-Аккаунт для ревью:
-логин review@mail.fake
-пароль letsreviewthis
