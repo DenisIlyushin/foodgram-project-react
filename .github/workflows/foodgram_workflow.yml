@@ -1,6 +1,12 @@
 name: SPRINT 14 workflow
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
+      - main
+    path:
+      - '!backend/**'
 
 jobs:
   tests:
