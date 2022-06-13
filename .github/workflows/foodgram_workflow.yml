@@ -71,26 +71,26 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgrambackend:deploy
-            sudo docker-compose stop
-            sudo docker-compose rm backend
+            sudo docker compose stop
+            sudo docker compose rm backend
             
             # перезапускаем контейнеры
-            sudo docker-compose up -d 
+            sudo docker compose up -d 
             
             # миграции
-            sudo docker-compose exec -T web python manage.py migrate
+            sudo docker-compose exec -it web python manage.py migrate
             
             # создание пользовательского админа Django
-            echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='${{ secrets.DJANGO_ADMIN_USERNAME }}').exists() or User.objects.create_superuser('${{ secrets.DJANGO_ADMIN_USERNAME }}', '${{ secrets.DJANGO_ADMIN_EMAIL }}', '${{ secrets.DJANGO_ADMIN_PASSWORD }}')" | sudo docker-compose exec -T web python manage.py shell
+            echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='${{ secrets.DJANGO_ADMIN_USERNAME }}').exists() or User.objects.create_superuser('${{ secrets.DJANGO_ADMIN_USERNAME }}', '${{ secrets.DJANGO_ADMIN_EMAIL }}', '${{ secrets.DJANGO_ADMIN_PASSWORD }}')" | sudo docker compose exec -it web python manage.py shell
             
             # Создание админа Django по умполчанию
             # echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'admin@fake.fake', 'admin')" | sudo docker-compose exec -T web python manage.py shell
             
             # Настройка статики
-            sudo docker-compose exec -T web python manage.py collectstatic --no-input
+            sudo docker compose exec -it web python manage.py collectstatic --no-input
             
             # Наполнение базы стандартными данными
-            # sudo docker-compose exec -Т web python manage.py imprint_initial_data
+            # sudo docker compose exec -it web python manage.py imprint_initial_data
             
             # Обслуживание Docker. Удаление старых образов
             sudo docker system prune -af
