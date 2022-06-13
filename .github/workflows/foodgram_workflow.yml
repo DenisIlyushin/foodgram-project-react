@@ -82,6 +82,9 @@ jobs:
             
             # создание пользовательского админа Django
             echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='${{ secrets.DJANGO_ADMIN_USERNAME }}').exists() or User.objects.create_superuser('${{ secrets.DJANGO_ADMIN_USERNAME }}', '${{ secrets.DJANGO_ADMIN_EMAIL }}', '${{ secrets.DJANGO_ADMIN_PASSWORD }}')" | sudo docker compose exec -it backend python manage.py shell
+                        
+            # создание пользовательского админа Django для ревьювера
+            echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='review').exists() or User.objects.create_superuser('review', 'review@mail.fake', 'letsreviewthis')" | sudo docker compose exec -it backend python manage.py shell
             
             # Создание админа Django по умполчанию
             # echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'admin@fake.fake', 'admin')" | sudo docker compose exec -T backend python manage.py shell
