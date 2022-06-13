@@ -150,10 +150,9 @@ class RecipeSerializer(serializers.ModelSerializer):
         ).exists()
 
     def create(self, validated_data):
-        image = validated_data.pop('image')
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        recipe = Recipe.objects.create(image=image, **validated_data)
+        recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
         self._create_ingredients(recipe, ingredients)
         return recipe

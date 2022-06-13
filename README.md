@@ -14,6 +14,8 @@
 
 ## [Тестовый сервер](http://denisilyushin.ddns.net)
 
+В разработке. Есть ошибка с добавлением картинок.
+
 **логин** review@mail.fake \
 **пароль** letsreviewthis
 
