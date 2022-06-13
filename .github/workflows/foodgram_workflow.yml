@@ -79,11 +79,11 @@ jobs:
         run: ssh-keyscan -H ${{ secrets.HOST_SERVER }} >> ~/.ssh/known_hosts
 
       - name: executing remote ssh commands to deploy
-        uses: appleboy/ssh-action@master
+        uses: shimataro/ssh-key-action@v2
         with:
+          key: ${{ secrets.SSH_KEY }}
           host: ${{ secrets.HOST_SERVER }}
           username: ${{ secrets.HOST_USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
           script: |
             touch deploy.txt
 
