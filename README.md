@@ -184,17 +184,59 @@ docker-compose up -d --build
 ```
 
 #### Особенености сборки
-- Файлы базы данных буцдут сохранены в ~/.dbdata
-- CI/CD не подразумевает замену 
+- Файлы базы данных будут сохранены в `~/.dbdata`
+- CI/CD не подразумевает частую замену файлов `.evn`, `nginx.config`, `docker-compose.yml`
 
 ## Github-actions
-(в разработке)
+Для CI/CD c использованием Github Actions можно использовать предложенный 
+в папке `/infra` конфигурационный файл `foodgram_workflow.yml`.
+
+Workflow состоит из четырёх шагов:
+1. Проведение матричного теста на соотвествие PEP для интерпретаторов 
+Python 3.7, 3.8 и 3.9.
+2. Сборка и публикация образа backend-сервера на вашем [DockerHub](https://hub.docker.com/).
+3. Автоматический деплой на сервере Я.Облака.
+4. Отправка уведомления вашим телеграм-ботом.
+
+#### Настройка сервера для CI/CD
+1. Выполнить действия из раздела _Запуск проекта на удаленном сервере_ (см. выше).
+2. Подготовка ssh-ключа для Github Actions:
+```bash
+cd ~/.ssh
+# генерируем ключ для Github Actions
+# ssh-ключ предлагается назвать github-actions
+# passphase не устанавливать
+ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
+```
+[image](https://zellwk.com/images/2021/github-actions-deploy/name-ssh-key-file.png) \
+[image](https://zellwk.com/images/2021/github-actions-deploy/passphrase-empty.png)
+```bash
+# добавляем публичный ключ в список разрешенных ключей
+cat github-actions.pub >> authorized_keys
+# (опц.) для удобства дальнейшей работы можно скопировать содержимое ключа в файл
+cat github-actions >> ~/github-key.txt
+```
+3. Для работы с workflow добавьте переменные окружения Github Actions.
+```bash
+DOCKER_USERNAME = 'Логин от DockerHub'
+DOCKER_PASSWORD = 'Пароль от DockerHub'
+
+SSH_KEY = 'содержимое приватного ключа github-actions (см. п.2)'
+HOST_SERVER = 'IP-адрес сервера на Я.Облаке'
+HOST_USERNAME = 'Учетная запись администратора с правами суперпользователя'
+
+DJANGO_ADMIN_USERNAME = 'Пседоним учетной записи суперпользователя Djano'
+DJANGO_ADMIN_EMAIL = 'Адрес электронной почты учетной записи суперпользователя Djano'
+DJANGO_ADMIN_PASSWORD = 'Пароль учетной записи суперпользователя Djano'
+
+TELEGRAM_TO = 'id вашей учетной записи в telegram'
+TELEGRAM_TOKEN = 'token вашего бота в telegram'
+```
 
 ### Восстановление данных из резервной копии
 ```bash
 docker-compose exec backend bash
 python manage.py flush
-
 python3 manage.py shell
 ```
 ```python
