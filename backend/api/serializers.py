@@ -76,57 +76,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             'is_in_shopping_cart', 'name', 'image', 'text', 'cooking_time'
         )
 
-    def validate(self, data):
-        _data = self.context['request'].data
-        ingredients = _data.get('ingredients')
-        if not ingredients:
-            raise serializers.ValidationError(
-                {'ingredients': 'Нужен хоть один ингредиент для рецепта'}
-            )
-        ingredients_set = []
-        for ingredient in ingredients:
-            if int(ingredient['amount']) <= 0:
-                raise serializers.ValidationError(
-                    {'ingredients': (
-                        'Количество ингредиентов должно быть целым '
-                        'и больше 0.'
-                    )}
-                )
-            if ingredient['id'] in ingredients_set:
-                raise serializers.ValidationError(
-                    {'ingredients': (
-                        'Дважды один и тот же ингредиент '
-                        'в рецепт положить нельзя. Может '
-                        'быть стоит изменить его количество?'
-                    )}
-                )
-            ingredients_set.append(ingredient['id'])
-        data['ingredients'] = ingredients
-
-        tags = _data.get('tags')
-        if len(tags) > len(set(tags)):
-            raise serializers.ValidationError(
-                {'tags': 'Дважды один и тот же ярлык повторять нельзя.'}
-            )
-        data['tags'] = tags
-
-        cooking_time = float(_data.get('cooking_time'))
-        if cooking_time < 1 or cooking_time > MAX_COOKING_TIME:
-            raise serializers.ValidationError(
-                {'cooking_time': (
-                    'Время приготовления должно быть больше 1 минуты и '
-                    'меньше {0} часов.'.format(MAX_COOKING_TIME / 60)
-                )}
-            )
-        data['cooking_time'] = cooking_time
-        return data
-
-    def get_ingredients(self, obj):
-        return IngredientRecipeSerializer(
-            IngredientRecipe.objects.filter(recipe=obj),
-            many=True
-        ).data
-
     def _create_ingredients(self, recipe, ingredients):
         IngredientRecipe.objects.bulk_create([
             IngredientRecipe(
@@ -135,6 +84,51 @@ class RecipeSerializer(serializers.ModelSerializer):
                 amount=ingredient.get('amount'),
             ) for ingredient in ingredients
         ])
+
+    def to_internal_value(self, data):
+        return data
+
+    def validate(self, data):
+        ingredients = data.get('ingredients')
+        errors = []
+        if not ingredients:
+            errors.append('Нужен хоть один ингредиент для рецепта')
+        ingredients_set = []
+        for ingredient in ingredients:
+            if int(ingredient['amount']) <= 0:
+                errors.append(
+                    'Количество ингредиента с id {0} должно '
+                    'быть целым и больше 0.'.format(ingredient["id"])
+                )
+            if ingredient['id'] in ingredients_set:
+                errors.append(
+                    'Дважды ингредиента с id {0} в рецепт положить нельзя. '
+                    'Может быть стоит изменить его количество?'.format(
+                        ingredient["id"]
+                    )
+                )
+            ingredients_set.append(ingredient['id'])
+        tags = data.get('tags')
+        if len(tags) > len(set(tags)):
+            errors.append('Дважды один и тот же ярлык повторять нельзя.')
+        cooking_time = float(data.get('cooking_time'))
+        if cooking_time < 1 or cooking_time > MAX_COOKING_TIME:
+            errors.append(
+                'Время приготовления должно быть больше 1 минуты и '
+                'меньше {0} часов.'.format(MAX_COOKING_TIME / 60)
+            )
+        if errors:
+            raise serializers.ValidationError({'errors': errors})
+        data['ingredients'] = ingredients
+        data['tags'] = tags
+        data['cooking_time'] = cooking_time
+        return data
+
+    def get_ingredients(self, obj):
+        return IngredientRecipeSerializer(
+            IngredientRecipe.objects.filter(recipe=obj),
+            many=True
+        ).data
 
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
@@ -172,7 +166,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             ingredients=validated_data.pop('ingredients')
         )
         super().update(instance, validated_data)
-        instance.save()
         return instance
 
 
@@ -202,21 +195,23 @@ class FollowSerializer(serializers.ModelSerializer):
             'is_subscribed', 'recipes', 'recipes_count',
         )
 
+    def to_internal_value(self, data):
+        return data
+
     def validate(self, data):
-        _data = self.context['request'].data
-        user_id = _data['user_id']
-        author_id = _data['author_id']
+        user_id = data['user_id']
+        author_id = data['author_id']
         if user_id == author_id:
-            raise serializers.ValidationError(
-                'Ошибка подписки. Нельзя подписаться на самого себя.'
-            )
+            raise serializers.ValidationError({
+                'errors': 'Ошибка подписки. Нельзя подписаться на самого себя.'
+            })
         if Follow.objects.filter(
                 user=user_id,
                 author=author_id
         ).exists():
-            raise serializers.ValidationError(
-                'Ошибка подписки. Нельзя подписаться повторно.'
-            )
+            raise serializers.ValidationError({
+                'errors': 'Ошибка подписки. Нельзя подписаться повторно.'
+            })
         data['user'] = User.objects.get(id=user_id)
         data['author'] = User.objects.get(id=author_id)
         return data
