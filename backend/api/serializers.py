@@ -167,6 +167,8 @@ class RecipeSerializer(serializers.ModelSerializer):
             ingredients=validated_data.pop('ingredients')
         )
         super().update(instance, validated_data)
+        # без строчки 171 не срабатывает в деплое сохранение рецепта
+        instance.save()
         return instance
 
 
