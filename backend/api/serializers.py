@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserSerializer as DjoserUserSerializer
 from rest_framework import serializers
+from rest_framework.generics import get_object_or_404
 from rest_framework.validators import UniqueTogetherValidator
 
 from api.fields import Base64ImageField
@@ -212,6 +213,7 @@ class FollowSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 'errors': 'Ошибка подписки. Нельзя подписаться повторно.'
             })
+        get_object_or_404(User, id=author_id)
         data['user'] = User.objects.get(id=user_id)
         data['author'] = User.objects.get(id=author_id)
         return data

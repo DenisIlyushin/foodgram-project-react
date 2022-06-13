@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db.models import F, Sum
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import status, viewsets
@@ -35,28 +35,18 @@ class UserViewSet(DjoserUserViewSet):
         permission_classes=(IsAuthenticated,),
     )
     def subscribe(self, request, id=None):
-        try:
-            request.data['user_id'] = request.user.id
-            request.data['author_id'] = int(id)
-            serializer = FollowSerializer(
-                Follow(
-                    user=request.user,
-                    author=get_object_or_404(User, id=id)
-                ),
-                data=request.data,
-                context={'request': request},
-            )
-            serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED,
-            )
-        except Http404:
-            return Response(
-                {'errors': 'Автор не найден.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        request.data['user_id'] = request.user.id
+        request.data['author_id'] = int(id)
+        serializer = FollowSerializer(
+            data=request.data,
+            context={'request': request},
+        )
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+        )
 
     @subscribe.mapping.delete
     def unsubscribe(self, request, id=None):
