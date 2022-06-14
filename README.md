@@ -17,7 +17,8 @@
 **логин** review@mail.fake \
 **пароль** letsreviewthis
 
-Панель администратора
+[Панель администратора](http://denisilyushin.ddns.net/admin/)
+
 [Redoc](http://denisilyushin.ddns.net/api/docs/redoc.html)
 
 ---
