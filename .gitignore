@@ -144,3 +144,4 @@ dmypy.json
 #dev sketch files
 /infra/.wasworking
 /backend/api/try.py
+/backend/static/
