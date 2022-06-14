@@ -11,7 +11,6 @@ from users.models import Follow
 
 User = get_user_model()
 
-
 class UserSerializer(DjoserUserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
@@ -87,6 +86,11 @@ class RecipeSerializer(serializers.ModelSerializer):
         ])
 
     def to_internal_value(self, data):
+        ingredients = data.pop('ingredients')
+        tags = data.pop('tags')
+        data = super().to_internal_value(data)
+        data['tags'] = tags
+        data['ingredients'] = ingredients
         return data
 
     def validate(self, data):
@@ -150,9 +154,10 @@ class RecipeSerializer(serializers.ModelSerializer):
         ).exists()
 
     def create(self, validated_data):
+        image = validated_data.pop('image')
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        recipe = Recipe.objects.create(**validated_data)
+        recipe = Recipe.objects.create(image=image, **validated_data)
         recipe.tags.set(tags)
         self._create_ingredients(recipe, ingredients)
         return recipe
