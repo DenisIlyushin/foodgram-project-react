@@ -11,6 +11,7 @@ from users.models import Follow
 
 User = get_user_model()
 
+
 class UserSerializer(DjoserUserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
